@@ -126,13 +126,13 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
     // Set up the initial content of the privacy description
     String projectName = storageIo.getProjectName(userInfoProvider.getUserId(), projectId);
     String userEmail = userInfoProvider.getUserEmail();
-    String html = "";
-    String title = "<h2>Privacy Description for " + projectName + "</h2>";
+    String html = "<html><head><style type=\"text/css\">.SEC { border: 1px solid #CCC; width: 99%; margin: 1% auto; background-color: #E6F8E0 } </style></head><body>";
+    String title = "<div id=\"privacy-top\" class=\"SEC\"><h2>Privacy Description for " + projectName + "</h2>";
     String intro = "<p>" + projectName + " is an Android mobile application made on the AppInventor platform. " +
                    "The developer can be reached at <a href=\"mailto:" + userEmail + "\">" + userEmail + "</a>.</p>";
     String summary = "<h3>Privacy Summary</h3>";
     String details = "";
-    String interactions = "<h3>Privacy-sensitive Interactions</h3>";
+    String interactions = "<div class=\"SEC\"><h3>Privacy-sensitive Interactions</h3>";
     
     // select all the components referred to by property "ai:contains"
     StmtIterator iter = model.listStatements(null, aiContains, (RDFNode) null);
@@ -147,7 +147,7 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
         summary += "<li><a href=\"#privacy-" + compLabel.split(" ")[0] + "\">" + compLabel + "</a>, which " + compDescription + ".";
         
         // create a section for detailed annotations of the component
-        details += "<h3 id=\"privacy-" + compLabel.split(" ")[0] + "\">Details for " + compLabel + "</h3>";
+        details += "<div class=\"SEC\"><h3 id=\"privacy-" + compLabel.split(" ")[0] + "\">Details for " + compLabel + "</h3>";
         details += "<ul>";
         details += "<li>" + compLabel + " " + compDescription;
         StmtIterator propIter = ontModel.listStatements(component, null, (RDFNode) null);
@@ -171,9 +171,9 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
             details += "<li>" + compLabel + " " + predicateLabelStr + objectLabelStr;
           }
         }
-        details += "</ul>";
+        details += "</ul><a href=\"#privacy-top\">Back to the top</a></div>";
       }
-      summary += "</ul></p>";
+      summary += "</ul></p><a href=\"#privacy-top\">Back to the top</a></div>";
       
       // find all statements containing "ai:connectsTo"
       StmtIterator connectsIter = model.listStatements(null, aiConnectsTo, (RDFNode) null);
@@ -231,17 +231,17 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
             interactions += "<li>" + subjectLabelStr + " connects to " + objectLabelStr;
           }
         }
-        interactions += "</ul></p>";
+        interactions += "</ul></p><a href=\"#privacy-top\">Back to the top</a></div>";
       } else {
-        interactions += "<p>There are no interactions between the application's privacy-sensitive components.</p>";
+        interactions += "<p>There are no interactions between the application's privacy-sensitive components.</p></div>";
       }
     } else {
       // No privacy-sensitive components in this AppInventor project
-      summary += "<p>This application does not contain any privacy-sensitive components as defined in AppInventor.</p>";
+      summary += "<p>This application does not contain any privacy-sensitive components as defined in AppInventor.</p></div>";
       interactions = "";
     }
     
-    html = title + intro + summary + interactions + details;
+    html += title + intro + summary + interactions + details + "</body></html>";
     return html;
   }
   

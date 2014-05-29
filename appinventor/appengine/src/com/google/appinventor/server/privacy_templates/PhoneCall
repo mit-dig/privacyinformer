@@ -11,7 +11,7 @@
 phonecall:PhoneCallComponent  
     a   owl:Class;
     rdfs:label  "Phone Call Component";
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataDisseminationComponent;
     ai:description  "makes a phone call to a given number";
 
 # Privacy Implication and Common Usage

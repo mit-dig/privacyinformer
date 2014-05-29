@@ -16,11 +16,26 @@
 #
 
 :Component  
-    rdfs:comment "AppInventor are composed of components"; 
+    rdfs:comment "App Inventor are composed of components"; 
     rdfs:label "An Appventor component ";
     a   rdfs:Class .
 
-:ComponentClass
+:PrivacySensitiveComponent  
+    rdfs:comment "Some App Inventor components are privacy-sensitive"; 
+    rdfs:label "A Privacy-sensitive App Inventor component ";
+    rdfs:subClassOf :Component .
+
+:DataGatheringComponent  
+    rdfs:comment "Some components are privacy-sensitive because they gather or access privacy-sensitive data"; 
+    rdfs:label "A data-gathering privacy-sensitive App Inventor component ";
+    rdfs:subClassOf :PrivacySensitiveComponent .
+
+:DataDisseminationComponent
+    rdfs:comment "Some components are privacy-sensitive because they disseminate privacy-sensitive data"; 
+    rdfs:label "A data-disseminating privacy-sensitive App Inventor component ";
+    rdfs:subClassOf :PrivacySensitiveComponent .
+
+:CategoryClass
     rdfs:comment "generic class for instances of AppInventor component categories such as Sensor, Social etc."; 
     rdfs:label "component category ";
     a   rdfs:Class .
@@ -34,6 +49,11 @@
     rdfs:comment "generic class for all AppInventor component methods such as setSensitivity for AccelerometerSensor etc."; 
     rdfs:label "component method";
     a   rdfs:Class .
+
+:PrivacyLeakingMethod
+    rdfs:comment "subclass of component method that indicates that this method could potentially leak privacy-sensitive information to other applications or devices"; 
+    rdfs:label "potentially privacy leaking component method";
+    rdfs:subClassOf :ComponentMethod .
 
 :ComponentEvent
     rdfs:comment "generic class for all AppInventor events such as AccelerationChanged for AccelerometerSensor etc."; 
@@ -85,7 +105,7 @@
     a rdf:Property;
     rdfs:comment "the AppInventor component category as seen in the palette within the Designer view";
     rdfs:label "belongs to category ";
-    rdfs:range  :ComponentClass;
+    rdfs:range  :CategoryClass;
     rdfs:domain :Component .
 
 :connectsTo
@@ -161,21 +181,21 @@
 #
 
 #
-# ComponentClass
+# CategoryClass
 #
 
 :Sensors
-    a   :ComponentClass;
+    a   :CategoryClass;
     rdfs:comment "category for all sensors, keeping consistent with the AppInventor interface";
     rdfs:label "sensors such as LocationSensor, AccelerometerSensor and LightSensor" .
 
 :Connectivity
-    a   :ComponentClass;
+    a   :CategoryClass;
     rdfs:comment "category for all connectivity related components";
     rdfs:label "connectivity, which is responsible for connecting the application to the Web in general" .
 
 :Social
-    a   :ComponentClass;
+    a   :CategoryClass;
     rdfs:comment "category for social networking components";
     rdfs:label "social, which enabled the application to connect to social networks such as Twitter and Facebook" .
 

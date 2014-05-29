@@ -11,7 +11,7 @@
 imagepicker:ImagePickerComponent  
     a   owl:Class;
     rdfs:label  "imagepicker component";
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataGatheringComponent;
     ai:description  "shows a list of images from the device's gallery";
     ai:category     ai:Media.
 

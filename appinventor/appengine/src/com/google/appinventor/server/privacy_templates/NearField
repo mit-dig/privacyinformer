@@ -10,7 +10,7 @@
 # Component Description
 nearfield:NearField  
     a   owl:Class;
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataGatheringComponent;
     rdfs:label  "nearfield sensor";
     ai:description  "communicates with other devices via NFC feature, if supported";
     ai:category     ai:Sensors;

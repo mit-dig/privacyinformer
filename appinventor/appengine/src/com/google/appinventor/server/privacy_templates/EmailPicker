@@ -11,7 +11,7 @@
 emailpicker:EmailPickerComponent  
     a   owl:Class;
     rdfs:label  "emailpicker component";
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataGatheringComponent;
     ai:description  "shows a list of email addresses from all contacts";
     ai:category     ai:Social;
 

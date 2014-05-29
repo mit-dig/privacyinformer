@@ -16,7 +16,7 @@
 # Component Description
 orientation:OrientationSensorComponent  
     a   owl:Class;
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataGatheringComponent;
     rdfs:label  "orientation sensor";
     ai:description  "detects orientation of the device in three dimensions";
     ai:category     ai:Sensors;

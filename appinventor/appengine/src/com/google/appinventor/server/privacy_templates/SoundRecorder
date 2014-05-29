@@ -11,7 +11,7 @@
 soundrecorder:SoundRecorderComponent  
     a   owl:Class;
     rdfs:label  "SoundRecorder";
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataGatheringComponent;
     ai:description  "record audio clicps using the device's microphone";
 
 # Privacy Implication and Common Usage

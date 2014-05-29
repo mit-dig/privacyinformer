@@ -14,7 +14,8 @@
 tinywebdb:TinyWebDBComponent
     a   owl:Class;
     rdfs:label  "TinyWebDB component";
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataGatheringComponent;
+    rdfs:subClassOf ai:DataDisseminationComponent;
     ai:description  "communicates with a web service to store and retrieve information"; 
     ai:category     ai:Storage;
 

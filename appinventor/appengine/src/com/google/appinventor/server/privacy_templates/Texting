@@ -11,7 +11,7 @@
 texting:TextingComponent  
     a   owl:Class;
     rdfs:label  "Texting component";
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataDisseminationComponent;
     ai:description  "sends text messages to specific phone numbers";
     ai:category     ai:Social;
 

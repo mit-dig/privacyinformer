@@ -19,7 +19,7 @@
 # Component Description
 accelerometer:AccelerometerSensorComponent  
     a   owl:Class;
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataGatheringComponent;
     rdfs:label  "accelerometer sensor";
     ai:description  "detects shaking and measures acceleration in three dimensions";
     ai:category     ai:Sensors;
@@ -45,6 +45,7 @@ accelerometer:ZAccel    rdfs:subClassOf   ai:ComponentProperty;
                         rdfs:label  "accelerometer's Z acceleration " .
 
 accelerometer:AccelerationChanged   rdfs:subClassOf   ai:ComponentEvent;
-                                    rdfs:label  "accelerometer detects a change in device acceleration" .
+                                    rdfs:label  "acceleration of the device changes" .
+
 accelerometer:Shaking   rdfs:subClassOf   ai:ComponentEvent;
-                        rdfs:label  "accelerometer detects device shaking" .
+                        rdfs:label  "the device shakes" .

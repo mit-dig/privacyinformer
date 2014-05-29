@@ -14,7 +14,7 @@
 webviewer:WebViewerComponent
     a   owl:Class;
     rdfs:label  "webviewer component";
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataDisseminationComponent;
     ai:description  "enables viewing of web pages via a given URL";
     ai:category     ai:UserInterface;
 

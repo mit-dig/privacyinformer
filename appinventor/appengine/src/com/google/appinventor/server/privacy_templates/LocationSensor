@@ -16,7 +16,7 @@
 location:LocationSensorComponent  
     a   owl:Class;
     rdfs:label  "location sensor";
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataGatheringComponent;
     ai:description  "senses the Android device's location with latitude and longitude values and can also convert physical addresses to lat/long values";
     ai:category     ai:Sensors;
     ai:details      "altitude can also be measured when the device supports it",

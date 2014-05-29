@@ -16,7 +16,7 @@
 web:WebComponent
     a   owl:Class;
     rdfs:label  "web component";
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataDisseminationComponent;
     ai:description  "provides funtionality for HTTP GET and POST requests";
     ai:category     ai:Connectivity;
     ai:details      "can be used for HTTP GET, POST, PUT and DELETE";
@@ -31,9 +31,9 @@ web:WebComponent
 web:URL     rdfs:subClassOf   ai:ComponentProperty; 
             rdfs:label  "URL of the web component " .
                 
-web:PostText    rdfs:subClassOf   ai:ComponentMethod;
-                rdfs:label  "web component's POST method " .
+web:PostText    rdfs:subClassOf   ai:PrivacyLeakingMethod;
+                rdfs:label  "web component sends data off the device" .
 
 web:GotText     rdfs:subClassOf   ai:ComponentEvent;
-                rdfs:label  "web component detects text has been received " . 
+                rdfs:label  "web component detects text has been received" . 
 

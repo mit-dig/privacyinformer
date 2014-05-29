@@ -12,7 +12,7 @@
 activitystarter:ActivityStarterComponent
     a   owl:Class;
     rdfs:label  "ActivityStarter component";
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataDisseminationComponent;
     ai:description  "launches an activity such as camera, web search or opening a browser page";
     ai:category     ai:Connectivity;
 

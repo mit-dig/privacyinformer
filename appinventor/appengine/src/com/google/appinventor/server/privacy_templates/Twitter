@@ -25,7 +25,8 @@
 twitter:TwitterComponent  
     a   owl:Class;
     rdfs:label  "twitter component";
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataGatheringComponent;
+    rdfs:subClassOf ai:DataDisseminationComponent;
     ai:description  "allows user to interact with Twitter";
     ai:category     ai:Social;
     ai:details      "Upon log in, many actions are authenticated to the application: ",
@@ -50,7 +51,7 @@ twitter:TwitterComponent
 twitter:Username    rdfs:subClassOf   ai:ComponentProperty; 
                     rdfs:label  "user name of the Twitter account holder " .
                 
-twitter:Tweet   rdfs:subClassOf   ai:ComponentMethod;
+twitter:Tweet   rdfs:subClassOf   ai:PrivacyLeakingMethod;
                 rdfs:label  "twitter's tweet method " .
 
 twitter:MentionsReceived    rdfs:subClassOf   ai:ComponentEvent;

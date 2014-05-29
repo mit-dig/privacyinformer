@@ -11,7 +11,7 @@
 contactpicker:ContactPickerComponent  
     a   owl:Class;
     rdfs:label  "Contact Picker component";
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataGatheringComponent;
     ai:description  "shows a list of all contacts";
     ai:category     ai:Social;
 

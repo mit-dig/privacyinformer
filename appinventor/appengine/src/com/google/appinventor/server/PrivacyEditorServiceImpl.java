@@ -48,6 +48,7 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
   private static final Property aiDescription = ResourceFactory.createProperty( AI_NS, "description");
   private static final Resource aiComponentEvent = ResourceFactory.createResource(AI_NS + "ComponentEvent");
   private static final Resource aiComponentMethod = ResourceFactory.createResource(AI_NS + "ComponentMethod");
+  private static final Resource aiPrivacyLeakingMethod = ResourceFactory.createResource(AI_NS + "PrivacyLeakingMethod");
   private static final Resource aiComponentProperty = ResourceFactory.createResource(AI_NS + "ComponentProperty");
   
   //Declare and Initialize required constants
@@ -132,7 +133,12 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
                    "The developer can be reached at <a href=\"mailto:" + userEmail + "\">" + userEmail + "</a>.</p>";
     String summary = "<h3>Privacy Summary</h3>";
     String details = "";
-    String interactions = "<div class=\"SEC\"><h3>Privacy-sensitive Interactions</h3>";
+    String interactionsHeading = "<div class=\"SEC\"><h3>Privacy-sensitive Interactions</h3>";
+    String interactionsBody = "";
+    
+    // Counter for interactions
+    int interactionsCounter = 0;
+    int privacyLeakingCounter = 0;
     
     // select all the components referred to by property "ai:contains"
     StmtIterator iter = model.listStatements(null, aiContains, (RDFNode) null);
@@ -178,9 +184,10 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
       // find all statements containing "ai:connectsTo"
       StmtIterator connectsIter = model.listStatements(null, aiConnectsTo, (RDFNode) null);
       if (connectsIter.hasNext()) {
-        interactions += "<p>The privacy-sensitive components interact in the following ways: " +
-                       "<ul>";
         while (connectsIter.hasNext()) {
+          // increment interactions counter
+          interactionsCounter++;
+          
           // find the subject and object of the connectsTo statement, then track down their AI classes
           Statement cur = connectsIter.nextStatement();
           Resource subject = cur.getSubject().asResource();
@@ -212,36 +219,49 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
           
           /* 
            * Classes are either ai:ComponentEvent, ai:ComponentMethod or ai:ComponentProperty
+           * ai:ComponentMethod might be potentially privacy-leaking ai:PrivacyLeakingMethod
            * Interactions possible:
-           *   ai:ComponentEvent ai:connectsTo ai:ComponentMethod
+           *   ai:ComponentEvent ai:connectsTo ai:ComponentMethod or ai:PrivacyLeakingMethod
            *   ai:ComponentEvent ai:connectsTo ai:ComponentProperty
-           *   ai:ComponentMethod ai:connectsTo ai:ComponentProperty
+           *   ai:ComponentMethod or ai:PrivacyLeakingMethod ai:connectsTo ai:ComponentProperty
            *   
            */
           
           if (subjectClass == null || objectClass == null) { // template does not contain the subject or object
-            interactions += "<li>" + subjectLabelStr + " connects to " + objectLabelStr;
+            interactionsBody += "<li>" + subjectLabelStr + " connects to " + objectLabelStr;
           } else if (subjectClass.getResource().equals(aiComponentEvent) && objectClass.getResource().equals(aiComponentMethod)) {
-            interactions += "<li>when " + subjectLabelStr + ", " + "the " + objectLabelStr + " is called."; 
+            interactionsBody += "<li>when " + subjectLabelStr + ", " + objectLabelStr + "."; 
+          } else if (subjectClass.getResource().equals(aiComponentEvent) && objectClass.getResource().equals(aiPrivacyLeakingMethod)) {
+            interactionsBody = "<font color=\"red\"><li>when " + subjectLabelStr + ", " + objectLabelStr + ".</font>" + interactionsBody;
+            // increment privacy leaking counter
+            privacyLeakingCounter++;
           } else if (subjectClass.getResource().equals(aiComponentEvent) && objectClass.getResource().equals(aiComponentProperty)) {
-            interactions += "<li>when " + subjectLabelStr + ", " + "the " + objectLabelStr + " is accessed.";
+            interactionsBody += "<li>when " + subjectLabelStr + ", " + objectLabelStr + " is collected.";
           } else if (subjectClass.getResource().equals(aiComponentMethod) && objectClass.getResource().equals(aiComponentProperty)) {
-            interactions += "<li>" + subjectLabelStr + " is called with " + objectLabelStr + " as the parameter.";
+            interactionsBody += "<li>" + subjectLabelStr + ", and uses " + objectLabelStr + ".";
+          } else if (subjectClass.getResource().equals(aiPrivacyLeakingMethod) && objectClass.getResource().equals(aiComponentProperty)) {
+            interactionsBody = "<font color=\"red\"><li>" + subjectLabelStr + ", and uses " + objectLabelStr + ".</font>" + interactionsBody;
+            // increment privacy leaking counter
+            privacyLeakingCounter++;
           } else { // non-traditional interaction
-            interactions += "<li>" + subjectLabelStr + " connects to " + objectLabelStr;
+            interactionsBody += "<li>" + subjectLabelStr + " connects to " + objectLabelStr;
           }
         }
-        interactions += "</ul></p><a href=\"#privacy-top\">Back to the top</a></div>";
+        interactionsHeading += "<p>The application contains <b>" + interactionsCounter + "</b> privacy-sensitive interactions in total, " + 
+                               "with <b>" + privacyLeakingCounter + "</b> of them <font color=\"red\">potentially leaking</font> private information:" +
+                               "<ul>";
+        interactionsBody += "</ul></p><a href=\"#privacy-top\">Back to the top</a></div>";
       } else {
-        interactions += "<p>There are no interactions between the application's privacy-sensitive components.</p></div>";
+        interactionsBody += "<p>There are no interactions between the application's privacy-sensitive components.</p></div>";
       }
     } else {
       // No privacy-sensitive components in this AppInventor project
       summary += "<p>This application does not contain any privacy-sensitive components as defined in AppInventor.</p></div>";
-      interactions = "";
+      interactionsHeading = "";
+      interactionsBody = "";
     }
     
-    html += title + intro + summary + interactions + details + "</body></html>";
+    html += title + intro + summary + interactionsHeading + interactionsBody + details + "</body></html>";
     return html;
   }
   

@@ -10,7 +10,7 @@
 # Component Description
 sharing:Sharing  
     a   owl:Class;
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataDisseminationComponent;
     rdfs:label  "Sharing component";
     ai:description  "enables sharing files or messages between the application and other application on the device";
     ai:category     ai:Social;

@@ -11,7 +11,7 @@
 camera:CameraComponent  
     a   owl:Class;
     rdfs:label  "camera";
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataGatheringComponent;
     ai:description  "take a picture using the device's camera";
 
 # Privacy Implication and Common Usage

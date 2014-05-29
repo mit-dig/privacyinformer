@@ -11,7 +11,7 @@
 camcorder:CamcorderComponent  
     a   owl:Class;
     rdfs:label  "camcorder";
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataGatheringComponent;
     ai:description  "record a video using the device's camcorder";
 
 # Privacy Implication and Common Usage

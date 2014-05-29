@@ -11,7 +11,7 @@
 phonenumberpicker:PhoneNumberPickerComponent  
     a   owl:Class;
     rdfs:label  "Phone Number Picker component";
-    rdfs:subClassOf ai:Component;
+    rdfs:subClassOf ai:DataGatheringComponent;
     ai:description  "shows a list of phone numbers from all contacts";
     ai:category     ai:Social;
 

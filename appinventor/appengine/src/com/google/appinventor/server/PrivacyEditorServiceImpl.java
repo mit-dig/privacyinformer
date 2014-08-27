@@ -1,6 +1,9 @@
 package com.google.appinventor.server;
 
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +43,7 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
   
   // Custom Defined Constants
   private static final String BASE_NS = "http://ai2.appinventor.mit.edu/privacyDescription/";
-  private static final String TEMPLATE_LOC ="privacy_templates/"; // template location with respective to current classpath
+  private static final String TEMPLATE_LOC ="http://dig.csail.mit.edu/2014/PrivacyInformer/"; // template location 
   private static final String AI_NS = "http://dig.csail.mit.edu/2014/PrivacyInformer/appinventor#";
   private static final String COMPONENT_NS = "http://dig.csail.mit.edu/2014/PrivacyInformer/";
   private static final Property aiContains = ResourceFactory.createProperty( AI_NS, "contains");
@@ -48,6 +51,7 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
   private static final Property aiDescription = ResourceFactory.createProperty( AI_NS, "description");
   private static final Resource aiComponentEvent = ResourceFactory.createResource(AI_NS + "ComponentEvent");
   private static final Resource aiComponentMethod = ResourceFactory.createResource(AI_NS + "ComponentMethod");
+  private static final Resource aiPrivacyLeakingMethod = ResourceFactory.createResource(AI_NS + "PrivacyLeakingMethod");
   private static final Resource aiComponentProperty = ResourceFactory.createResource(AI_NS + "ComponentProperty");
   
   //Declare and Initialize required constants
@@ -94,7 +98,15 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
       if (templates.contains(component)) {
         privacyDescription.addProperty(aiContains, ResourceFactory.createResource( COMPONENT_NS + component + "#" + component + "Component"));
         model.setNsPrefix(component.toLowerCase(), COMPONENT_NS + component + "#");
-        ontModel.read(getClass().getResourceAsStream( TEMPLATE_LOC + component), null, "TTL");
+        try {
+          ontModel.read(new URL(TEMPLATE_LOC + component).openStream(), null, "TTL");
+        } catch (MalformedURLException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
       }
     }
     
@@ -120,19 +132,32 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
     
     // Create a new model with the appinventor and android ontology loaded
     Model aiAndroidModel = ModelFactory.createDefaultModel();
-    aiAndroidModel.read(getClass().getResourceAsStream( TEMPLATE_LOC + "appinventor"), null, "TTL");
-    aiAndroidModel.read(getClass().getResourceAsStream( TEMPLATE_LOC + "android"), null, "TTL");
+    try {
+      aiAndroidModel.read(new URL(TEMPLATE_LOC + "appinventor").openStream(), null, "TTL");
+      aiAndroidModel.read(new URL(TEMPLATE_LOC + "android").openStream(), null, "TTL");
+    } catch (MalformedURLException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     
     // Set up the initial content of the privacy description
     String projectName = storageIo.getProjectName(userInfoProvider.getUserId(), projectId);
     String userEmail = userInfoProvider.getUserEmail();
-    String html = "";
-    String title = "<h2>Privacy Description for " + projectName + "</h2>";
+    String html = "<html><head><style type=\"text/css\">.SEC { border: 1px solid #CCC; width: 99%; margin: 1% auto; background-color: #E6F8E0 } </style></head><body>";
+    String title = "<div id=\"privacy-top\" class=\"SEC\"><h2>Privacy Description for " + projectName + "</h2>";
     String intro = "<p>" + projectName + " is an Android mobile application made on the AppInventor platform. " +
                    "The developer can be reached at <a href=\"mailto:" + userEmail + "\">" + userEmail + "</a>.</p>";
     String summary = "<h3>Privacy Summary</h3>";
     String details = "";
-    String interactions = "<h3>Privacy-sensitive Interactions</h3>";
+    String interactionsHeading = "<div class=\"SEC\"><h3>Privacy-sensitive Interactions</h3>";
+    String interactionsBody = "";
+    
+    // Counter for interactions
+    int interactionsCounter = 0;
+    int privacyLeakingCounter = 0;
     
     // select all the components referred to by property "ai:contains"
     StmtIterator iter = model.listStatements(null, aiContains, (RDFNode) null);
@@ -147,7 +172,7 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
         summary += "<li><a href=\"#privacy-" + compLabel.split(" ")[0] + "\">" + compLabel + "</a>, which " + compDescription + ".";
         
         // create a section for detailed annotations of the component
-        details += "<h3 id=\"privacy-" + compLabel.split(" ")[0] + "\">Details for " + compLabel + "</h3>";
+        details += "<div class=\"SEC\"><h3 id=\"privacy-" + compLabel.split(" ")[0] + "\">Details for " + compLabel + "</h3>";
         details += "<ul>";
         details += "<li>" + compLabel + " " + compDescription;
         StmtIterator propIter = ontModel.listStatements(component, null, (RDFNode) null);
@@ -171,16 +196,17 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
             details += "<li>" + compLabel + " " + predicateLabelStr + objectLabelStr;
           }
         }
-        details += "</ul>";
+        details += "</ul><a href=\"#privacy-top\">Back to the top</a></div>";
       }
-      summary += "</ul></p>";
+      summary += "</ul></p><a href=\"#privacy-top\">Back to the top</a></div>";
       
       // find all statements containing "ai:connectsTo"
       StmtIterator connectsIter = model.listStatements(null, aiConnectsTo, (RDFNode) null);
       if (connectsIter.hasNext()) {
-        interactions += "<p>The privacy-sensitive components interact in the following ways: " +
-                       "<ul>";
         while (connectsIter.hasNext()) {
+          // increment interactions counter
+          interactionsCounter++;
+          
           // find the subject and object of the connectsTo statement, then track down their AI classes
           Statement cur = connectsIter.nextStatement();
           Resource subject = cur.getSubject().asResource();
@@ -212,36 +238,49 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
           
           /* 
            * Classes are either ai:ComponentEvent, ai:ComponentMethod or ai:ComponentProperty
+           * ai:ComponentMethod might be potentially privacy-leaking ai:PrivacyLeakingMethod
            * Interactions possible:
-           *   ai:ComponentEvent ai:connectsTo ai:ComponentMethod
+           *   ai:ComponentEvent ai:connectsTo ai:ComponentMethod or ai:PrivacyLeakingMethod
            *   ai:ComponentEvent ai:connectsTo ai:ComponentProperty
-           *   ai:ComponentMethod ai:connectsTo ai:ComponentProperty
+           *   ai:ComponentMethod or ai:PrivacyLeakingMethod ai:connectsTo ai:ComponentProperty
            *   
            */
           
           if (subjectClass == null || objectClass == null) { // template does not contain the subject or object
-            interactions += "<li>" + subjectLabelStr + " connects to " + objectLabelStr;
+            interactionsBody += "<li>" + subjectLabelStr + " connects to " + objectLabelStr;
           } else if (subjectClass.getResource().equals(aiComponentEvent) && objectClass.getResource().equals(aiComponentMethod)) {
-            interactions += "<li>when " + subjectLabelStr + ", " + "the " + objectLabelStr + " is called."; 
+            interactionsBody += "<li>when " + subjectLabelStr + ", " + objectLabelStr + "."; 
+          } else if (subjectClass.getResource().equals(aiComponentEvent) && objectClass.getResource().equals(aiPrivacyLeakingMethod)) {
+            interactionsBody = "<font color=\"red\"><li>when " + subjectLabelStr + ", " + objectLabelStr + ".</font>" + interactionsBody;
+            // increment privacy leaking counter
+            privacyLeakingCounter++;
           } else if (subjectClass.getResource().equals(aiComponentEvent) && objectClass.getResource().equals(aiComponentProperty)) {
-            interactions += "<li>when " + subjectLabelStr + ", " + "the " + objectLabelStr + " is accessed.";
+            interactionsBody += "<li>when " + subjectLabelStr + ", " + objectLabelStr + " is collected.";
           } else if (subjectClass.getResource().equals(aiComponentMethod) && objectClass.getResource().equals(aiComponentProperty)) {
-            interactions += "<li>" + subjectLabelStr + " is called with " + objectLabelStr + " as the parameter.";
+            interactionsBody += "<li>" + subjectLabelStr + ", and uses " + objectLabelStr + ".";
+          } else if (subjectClass.getResource().equals(aiPrivacyLeakingMethod) && objectClass.getResource().equals(aiComponentProperty)) {
+            interactionsBody = "<font color=\"red\"><li>" + subjectLabelStr + ", and uses " + objectLabelStr + ".</font>" + interactionsBody;
+            // increment privacy leaking counter
+            privacyLeakingCounter++;
           } else { // non-traditional interaction
-            interactions += "<li>" + subjectLabelStr + " connects to " + objectLabelStr;
+            interactionsBody += "<li>" + subjectLabelStr + " connects to " + objectLabelStr;
           }
         }
-        interactions += "</ul></p>";
+        interactionsHeading += "<p>The application contains <b>" + interactionsCounter + "</b> privacy-sensitive interactions in total, " + 
+                               "with <b>" + privacyLeakingCounter + "</b> of them <font color=\"red\">potentially leaking</font> private information:" +
+                               "<ul>";
+        interactionsBody += "</ul></p><a href=\"#privacy-top\">Back to the top</a></div>";
       } else {
-        interactions += "<p>There are no interactions between the application's privacy-sensitive components.</p>";
+        interactionsBody += "<p>There are no interactions between the application's privacy-sensitive components.</p></div>";
       }
     } else {
       // No privacy-sensitive components in this AppInventor project
-      summary += "<p>This application does not contain any privacy-sensitive components as defined in AppInventor.</p>";
-      interactions = "";
+      summary += "<p>This application does not contain any privacy-sensitive components as defined in AppInventor.</p></div>";
+      interactionsHeading = "";
+      interactionsBody = "";
     }
     
-    html = title + intro + summary + interactions + details;
+    html += title + intro + summary + interactionsHeading + interactionsBody + details + "</body></html>";
     return html;
   }
   
@@ -328,19 +367,23 @@ public class PrivacyEditorServiceImpl extends OdeRemoteServiceServlet implements
     return predicateInstance; 
   }
   
-  // Get a list of available templates using given classpath
+  // Get a list of available templates using the list given at the remote server
   private List<String> getTemplates(Class loader) {
     List<String> templates = new ArrayList<String>();
-    InputStream in = loader.getResourceAsStream(TEMPLATE_LOC);
-    BufferedReader rdr = new BufferedReader(new InputStreamReader(in));
-    String line;
+    String urlStr = TEMPLATE_LOC + "ListPrivacySensitiveComponents";
+    URL url;
     try {
-      while ((line = rdr.readLine()) != null) {
-          templates.add(line);
+      url = new URL(urlStr);
+      URLConnection con = url.openConnection();
+      
+      BufferedReader reader = new java.io.BufferedReader(new InputStreamReader(con.getInputStream()));
+      String line = null;
+      
+      while ((line = reader.readLine()) != null) {
+        templates.add(line);
       }
-      rdr.close();
-    }
-    catch (IOException e) {
+      reader.close();
+    } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }

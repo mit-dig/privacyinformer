@@ -97,14 +97,14 @@ public class Form extends Activity
   // activity: if a Clock component's TimerAlwaysFires property is true, the Clock component's
   // Timer event will still fire, even when the activity is no longer in the foreground. For this
   // reason, we cannot assume that the activeForm is the foreground activity.
-  private static Form activeForm;
+  protected static Form activeForm;
 
   // applicationIsBeingClosed is set to true during closeApplication.
   private static boolean applicationIsBeingClosed;
 
   private final Handler androidUIHandler = new Handler();
 
-  private String formName;
+  protected String formName;
 
   private boolean screenInitialized;
 
@@ -150,7 +150,8 @@ public class Form extends Activity
   private final Set<OnInitializeListener> onInitializeListeners = Sets.newHashSet();
 
   // Set to the optional String-valued Extra passed in via an Intent on startup.
-  private String startupValue = "";
+  // This is passed directly in the Repl.
+  protected String startupValue = "";
 
   // To control volume of error complaints
   private static long minimumToastWait = 10000000000L; // 10 seconds
@@ -209,7 +210,7 @@ public class Form extends Activity
   }
 
   private void defaultPropertyValues() {
-    Scrollable(true); // frameLayout is created in Scrollable()
+    Scrollable(false); // frameLayout is created in Scrollable()
     BackgroundImage("");
     AboutScreen("");
     BackgroundColor(Component.COLOR_WHITE);
@@ -518,7 +519,9 @@ public class Form extends Activity
           for (OnInitializeListener onInitializeListener : onInitializeListeners) {
             onInitializeListener.onInitialize();
           }
-
+          if (activeForm instanceof ReplForm) { // We are the Companion
+            ((ReplForm)activeForm).HandleReturnValues();
+          }
         } else {
           // Try again later.
           androidUIHandler.post(this);
@@ -590,7 +593,7 @@ public class Form extends Activity
    * @param scrollable  true if the screen should be vertically scrollable
    */
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-    defaultValue = "True")
+    defaultValue = "False")
   @SimpleProperty
   public void Scrollable(boolean scrollable) {
     if (this.scrollable == scrollable && frameLayout != null) {
@@ -1106,7 +1109,7 @@ public class Form extends Activity
 
   // functionName is used for including in the error message to be shown
   // if the JSON encoding fails
-  private static String jsonEncodeForForm(Object value, String functionName) {
+  protected static String jsonEncodeForForm(Object value, String functionName) {
     String jsonResult = "";
     Log.i(LOG_TAG, "jsonEncodeForForm -- creating JSON representation:" + value.toString());
     try {
@@ -1226,10 +1229,15 @@ public class Form extends Activity
   // This is called from runtime.scm when a "close screen with value" block is executed.
   public static void finishActivityWithResult(Object result) {
     if (activeForm != null) {
-      String jString = jsonEncodeForForm(result, "close screen with value");
-      Intent resultIntent = new Intent();
-      resultIntent.putExtra(RESULT_NAME, jString);
-      activeForm.closeForm(resultIntent);
+      if (activeForm instanceof ReplForm) {
+        ((ReplForm)activeForm).setResult(result);
+        activeForm.closeForm(null);        // This will call RetValManager.popScreen()
+      } else {
+        String jString = jsonEncodeForForm(result, "close screen with value");
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra(RESULT_NAME, jString);
+        activeForm.closeForm(resultIntent);
+      }
     } else {
       throw new IllegalStateException("activeForm is null");
     }
@@ -1389,6 +1397,7 @@ public class Form extends Activity
   private void showAboutApplicationNotification() {
     String title = "About This App";
     String tagline = "<p><small><em>Invented with MIT App Inventor<br>appinventor.mit.edu</em></small>";
+    aboutScreen = aboutScreen.replaceAll("\\n", "<br>"); // Allow for line breaks in the string.
     String message = aboutScreen + tagline + yandexTranslateTagline;
     String buttonText ="Got it";
     Notifier.oneButtonAlert(this, message, title, buttonText);

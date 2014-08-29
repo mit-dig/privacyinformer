@@ -30,7 +30,9 @@ Check out the open source [site](http://appinventor.mit.edu/appinventor-sources/
 
 The upstream master is the official App Inventor repo, to pull in the latest commits:
 
-`git pull upstream master
+```
+git pull upstream master
+```
 
 Note you may need to resolve conflicts as needed. PrivacyInformer has NOT been merged into the official App Inventor repo.
 

@@ -26,4 +26,11 @@ This code is tested and known to work with Java 7.
 
 Check out the open source [site](http://appinventor.mit.edu/appinventor-sources/) to find a lot more information about how to compile, build and run this code. 
 
+##Pulling from App Inventor master
+
+The upstream master is the official App Inventor repo, to pull in the latest commits:
+
+`git pull upstream master
+
+Note you may need to resolve conflicts as needed. PrivacyInformer has NOT been merged into the official App Inventor repo.
 
